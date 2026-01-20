@@ -1,6 +1,6 @@
 # Militärische Hierarchie Visualisierung
 
-Dieses Projekt stellt die militärische Hierarchie des britischen Militärs mithilfe von Node.js, PostgreSQL und OrgChart.js dar.
+Dieses Projekt stellt die militärische Hierarchie des serbischen Militärs mithilfe von Node.js, PostgreSQL und OrgChart.js dar.
 
 ## Vorraussetzungen
 
@@ -38,7 +38,7 @@ Dieses Projekt stellt die militärische Hierarchie des britischen Militärs mith
     Der Server läuft jetzt unter http://localhost:3000.
 
 6. **Website aufrufen**:
-    Öffne im Browser die Datei index.html und du solltest die Hierarchie des britischen Militärs als Diagramm sehen.
+    Öffne im Browser die Datei index.html und du solltest die Hierarchie des serbischen Militärs als Diagramm sehen.
 
 ## Datenbankstruktur
 
