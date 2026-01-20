@@ -11,7 +11,7 @@
         /* --- 1. Allgemeines Seiten-Layout --- */
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #f4f7f6; /* Heller, moderner Hintergrund */
+            background-color: #f4f7f6;
             margin: 0;
             padding: 20px;
             display: flex;
@@ -29,40 +29,35 @@
 
         #chart-container {
             width: 100%;
-            overflow-x: auto; /* Scrollbar, wenn der Baum zu breit wird */
-            padding-bottom: 50px; /* Platz für Schatten unten */
+            overflow-x: auto;
+            padding-bottom: 50px;
             text-align: center;
         }
 
         /* --- 2. Styling der Google Charts Knoten (Cards) --- */
-        
-        /* Basis-Style für die Boxen überschreiben */
         .google-visualization-orgchart-node {
-            background: #ffffff !important; /* Weißer Hintergrund */
-            border: none !important; /* Standardrahmen entfernen */
+            background: #ffffff !important;
+            border: none !important;
             border-radius: 8px !important;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08) !important;
             padding: 15px 20px !important;
-            width: 160px; /* Feste Breite für Einheitlichkeit */
-            transition: all 0.3s ease; /* Weiche Animation */
+            width: 160px;
+            transition: all 0.3s ease;
             cursor: pointer;
             color: #333;
         }
 
-        /* Hover-Effekt: Karte hebt sich an */
         .google-visualization-orgchart-node:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(0,0,0,0.15), 0 3px 6px rgba(0,0,0,0.10) !important;
-            border-top: 4px solid #3498db !important; /* Blauer Akzent oben beim Hover */
+            border-top: 4px solid #3498db !important;
         }
 
-        /* Style für ausgewählte Knoten */
         .google-visualization-orgchart-node-medium {
             font-size: 1rem;
             font-weight: bold;
         }
 
-        /* Text-Styling innerhalb der Knoten */
         .node-name {
             font-weight: 700;
             color: #2c3e50;
@@ -78,12 +73,10 @@
         }
 
         /* --- 3. Styling der Verbindungslinien --- */
-        
-        /* Vertikale Linien */
         .google-visualization-orgchart-lineleft, 
         .google-visualization-orgchart-lineright, 
         .google-visualization-orgchart-linebottom {
-            border-color: #bdc3c7 !important; /* Weiches Grau statt Schwarz */
+            border-color: #bdc3c7 !important;
             border-width: 2px !important;
         }
     </style>
@@ -102,13 +95,20 @@
 
         async function fetchData() {
             try {
-                const response = await fetch('/hierarchy');
+                // UPDATE: Hier verwenden wir die volle URL inkl. Port.
+                // Das funktioniert sowohl beim Aufruf über den Server als auch bei lokalen Tests.
+                const response = await fetch('http://localhost:3100/hierarchy');
+                
                 if (!response.ok) throw new Error(response.statusText);
                 const data = await response.json();
                 renderChart(data);
             } catch (error) {
                 console.error('Fehler:', error);
-                document.getElementById('tree').innerHTML = `<p style="color:red; font-weight:bold;">Konnte Daten nicht laden: ${error.message}</p>`;
+                document.getElementById('tree').innerHTML = `
+                    <p style="color:red; font-weight:bold;">
+                        Konnte Daten nicht laden: ${error.message}<br>
+                        <small>Läuft der Server auf Port 3100?</small>
+                    </p>`;
             }
         }
 
@@ -124,16 +124,14 @@
                 const nodeId = String(item.id);
                 const parentId = item.parent_id ? String(item.parent_id) : '';
 
-                // Wir bauen hier HTML direkt in den Namen ein, um Klassen für CSS zu haben
-                // Das ist der Trick, um den Inhalt schön zu formatieren
                 const contentHtml = `
                     <div class="node-content">
                         <span class="node-name">${item.name}</span>
-                        </div>
+                    </div>
                 `;
 
                 return [
-                    { v: nodeId, f: contentHtml }, // f: formatiertes HTML
+                    { v: nodeId, f: contentHtml },
                     parentId,
                     item.name
                 ];
@@ -143,12 +141,10 @@
 
             const chart = new google.visualization.OrgChart(document.getElementById("tree"));
             
-            // WICHTIG: allowHtml muss true sein, damit unser CSS im Knoten greift
             const options = {
                 allowHtml: true,
                 allowCollapse: true,
                 size: 'medium',
-                // Wir entfernen die Standard-Selektionsfarbe, da wir das per CSS machen
                 selectionColor: 'transparent' 
             };
 
