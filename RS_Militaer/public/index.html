@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Militärische Hierarchie</title>
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- 1. Allgemeines Seiten-Layout --- */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f7f6; /* Heller, moderner Hintergrund */
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 1.8rem;
+        }
+
+        #chart-container {
+            width: 100%;
+            overflow-x: auto; /* Scrollbar, wenn der Baum zu breit wird */
+            padding-bottom: 50px; /* Platz für Schatten unten */
+            text-align: center;
+        }
+
+        /* --- 2. Styling der Google Charts Knoten (Cards) --- */
+        
+        /* Basis-Style für die Boxen überschreiben */
+        .google-visualization-orgchart-node {
+            background: #ffffff !important; /* Weißer Hintergrund */
+            border: none !important; /* Standardrahmen entfernen */
+            border-radius: 8px !important;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08) !important;
+            padding: 15px 20px !important;
+            width: 160px; /* Feste Breite für Einheitlichkeit */
+            transition: all 0.3s ease; /* Weiche Animation */
+            cursor: pointer;
+            color: #333;
+        }
+
+        /* Hover-Effekt: Karte hebt sich an */
+        .google-visualization-orgchart-node:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15), 0 3px 6px rgba(0,0,0,0.10) !important;
+            border-top: 4px solid #3498db !important; /* Blauer Akzent oben beim Hover */
+        }
+
+        /* Style für ausgewählte Knoten */
+        .google-visualization-orgchart-node-medium {
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        /* Text-Styling innerhalb der Knoten */
+        .node-name {
+            font-weight: 700;
+            color: #2c3e50;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            display: block;
+        }
+        
+        .node-title {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            font-weight: 400;
+        }
+
+        /* --- 3. Styling der Verbindungslinien --- */
+        
+        /* Vertikale Linien */
+        .google-visualization-orgchart-lineleft, 
+        .google-visualization-orgchart-lineright, 
+        .google-visualization-orgchart-linebottom {
+            border-color: #bdc3c7 !important; /* Weiches Grau statt Schwarz */
+            border-width: 2px !important;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Hierarchie des britischen Militärs</h1>
+    
+    <div id="chart-container">
+        <div id="tree"></div>
+    </div>
+
+    <script>
+        google.charts.load('current', {packages:["orgchart"]});
+        google.charts.setOnLoadCallback(fetchData);
+
+        async function fetchData() {
+            try {
+                const response = await fetch('/hierarchy');
+                if (!response.ok) throw new Error(response.statusText);
+                const data = await response.json();
+                renderChart(data);
+            } catch (error) {
+                console.error('Fehler:', error);
+                document.getElementById('tree').innerHTML = `<p style="color:red; font-weight:bold;">Konnte Daten nicht laden: ${error.message}</p>`;
+            }
+        }
+
+        function renderChart(apiData) {
+            if (!apiData || apiData.length === 0) return;
+
+            const dataTable = new google.visualization.DataTable();
+            dataTable.addColumn('string', 'Name'); 
+            dataTable.addColumn('string', 'Manager'); 
+            dataTable.addColumn('string', 'ToolTip');
+
+            const rows = apiData.map(item => {
+                const nodeId = String(item.id);
+                const parentId = item.parent_id ? String(item.parent_id) : '';
+
+                // Wir bauen hier HTML direkt in den Namen ein, um Klassen für CSS zu haben
+                // Das ist der Trick, um den Inhalt schön zu formatieren
+                const contentHtml = `
+                    <div class="node-content">
+                        <span class="node-name">${item.name}</span>
+                        </div>
+                `;
+
+                return [
+                    { v: nodeId, f: contentHtml }, // f: formatiertes HTML
+                    parentId,
+                    item.name
+                ];
+            });
+
+            dataTable.addRows(rows);
+
+            const chart = new google.visualization.OrgChart(document.getElementById("tree"));
+            
+            // WICHTIG: allowHtml muss true sein, damit unser CSS im Knoten greift
+            const options = {
+                allowHtml: true,
+                allowCollapse: true,
+                size: 'medium',
+                // Wir entfernen die Standard-Selektionsfarbe, da wir das per CSS machen
+                selectionColor: 'transparent' 
+            };
+
+            chart.draw(dataTable, options);
+        }
+    </script>
+</body>
+</html>
